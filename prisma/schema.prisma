@@ -58,6 +58,18 @@ model LocationGazetteer {
   createdAt      DateTime @default(now())
 }
 
+model FloodSignal {
+  id             String   @id @default(cuid())
+  rawText        String
+  country        String?
+  latitude       Float?
+  longitude      Float?
+  sourceRowIndex Int?     @unique
+  createdAt      DateTime @default(now())
+
+  @@index([country])
+}
+
 model AidRequest {
   id           String   @id @default(cuid())
   type         String

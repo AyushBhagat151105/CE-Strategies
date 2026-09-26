@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SmoothScroll } from "@/components/smooth-scroll";
 
 const hankenGrotesk = Hanken_Grotesk({
   subsets: ["latin"],
@@ -20,14 +21,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`dark ${hankenGrotesk.variable}`}>
-      <body className="min-h-screen bg-background text-foreground antialiased flex flex-col">
-        <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
-        <footer className="border-t border-border/40 py-4 text-center text-xs text-muted-foreground">
-          CE Strategies Disaster Informatics Challenge • Powered by Next.js & PostgreSQL
-        </footer>
+      <body className="min-h-screen bg-background text-foreground antialiased flex">
+        <SmoothScroll>
+          <AppSidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <main className="flex-1 w-full p-4 sm:p-6 lg:p-8">
+              {children}
+            </main>
+          </div>
+        </SmoothScroll>
       </body>
     </html>
   );

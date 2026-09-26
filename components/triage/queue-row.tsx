@@ -1,4 +1,4 @@
-import { ArrowUpCircle, CheckCircle2, Send, XCircle } from "lucide-react";
+import { ArrowUpCircle, CheckCircle2, Send, XCircle } from "@/components/icons";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CrisisTweetRecord, UrgencyLevel } from "@/lib/types";
@@ -57,7 +57,7 @@ export function QueueRow({
           <ArrowUpCircle className="h-3.5 w-3.5 text-amber-400" />
         </Button>
         <Button size="icon" variant="outline" onClick={onDispatch} title="Dispatch (D)">
-          <Send className="h-3.5 w-3.5 text-blue-400" />
+          <Send className="h-3.5 w-3.5 text-cream" />
         </Button>
         <Button size="icon" variant="outline" onClick={onDismiss} title="Dismiss (X)">
           <XCircle className="h-3.5 w-3.5 text-red-400" />
