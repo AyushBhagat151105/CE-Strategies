@@ -1,4 +1,5 @@
 import type { CalgaryZone, GeoCoordinate } from "./types";
+export type { CalgaryZone, GeoCoordinate };
 
 export const CALGARY_FLOOD_ZONES: readonly CalgaryZone[] = [
   {

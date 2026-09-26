@@ -134,7 +134,7 @@ Run these steps together before splitting into separate workstreams:
     - **Data Ingestion Trigger**: A "Load 8,026 Tweets" button calling `/api/ingest` with progress state.
   - **Done Criteria**: Dashboard renders real-time counts from the database and updates upon filter change.
 
-- [ ] **Task B5: Interactive Calgary Geospatial Flood Map**
+- [x] **Task B5: Interactive Calgary Geospatial Flood Map**
   - **Files**: `app/map/page.tsx` & `components/dashboard/calgary-map.tsx`
   - **Action**:
     - Build an interactive map centered on Calgary (51.0447° N, 114.0719° W).
