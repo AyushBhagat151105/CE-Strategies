@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { KpiRow, type KpiStats } from "./kpi-row";
-import { CategoryBars, type CategoryMetric } from "./category-bars";
+import { CategoryDonut, type CategoryMetric } from "./category-donut";
 import { ImpactedZones, type LocationMetric } from "./impacted-zones";
 import { LiveFeed, type CrisisTweetItem } from "./live-feed";
-import { IngestTrigger } from "./ingest-trigger";
-import { RefreshCw, Radio } from "lucide-react";
+import { FilterSheet } from "./filter-sheet";
 
 export function CommandCenter() {
   // Statistics State
@@ -25,7 +24,7 @@ export function CommandCenter() {
   });
   const [loadingTweets, setLoadingTweets] = useState<boolean>(true);
 
-  // Active Filter State
+  // Active Filter State — the filter toolbar is the single source of truth for all of these
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
   const [urgencyFilter, setUrgencyFilter] = useState<string | undefined>(undefined);
   const [locationFilter, setLocationFilter] = useState<string | undefined>(undefined);
@@ -55,18 +54,10 @@ export function CommandCenter() {
       setLoadingTweets(true);
       const params = new URLSearchParams();
 
-      if (categoryFilter && categoryFilter !== "ALL") {
-        params.set("category", categoryFilter);
-      }
-      if (urgencyFilter && urgencyFilter !== "ALL") {
-        params.set("urgency", urgencyFilter);
-      }
-      if (locationFilter) {
-        params.set("location", locationFilter);
-      }
-      if (searchQuery) {
-        params.set("q", searchQuery);
-      }
+      if (categoryFilter) params.set("category", categoryFilter);
+      if (urgencyFilter) params.set("urgency", urgencyFilter);
+      if (locationFilter) params.set("location", locationFilter);
+      if (searchQuery) params.set("q", searchQuery);
 
       params.set("page", currentPage.toString());
       params.set("limit", "25");
@@ -102,7 +93,7 @@ export function CommandCenter() {
     fetchTweets();
   }, [fetchTweets]);
 
-  // Handle Filter Changes
+  // Handle Filter Changes — the ONLY place filter state is mutated from
   const handleFilterChange = (filters: {
     category?: string;
     urgency?: string;
@@ -110,10 +101,10 @@ export function CommandCenter() {
     q?: string;
     page?: number;
   }) => {
-    if (filters.category !== undefined) setCategoryFilter(filters.category);
-    if (filters.urgency !== undefined) setUrgencyFilter(filters.urgency);
-    if (filters.location !== undefined) setLocationFilter(filters.location);
-    if (filters.q !== undefined) setSearchQuery(filters.q);
+    if ("category" in filters) setCategoryFilter(filters.category);
+    if ("urgency" in filters) setUrgencyFilter(filters.urgency);
+    if ("location" in filters) setLocationFilter(filters.location);
+    if ("q" in filters) setSearchQuery(filters.q || undefined);
     if (filters.page !== undefined) setCurrentPage(filters.page);
   };
 
@@ -125,96 +116,59 @@ export function CommandCenter() {
     setCurrentPage(1);
   };
 
-  // Reload everything upon ingestion
-  const handleIngestComplete = () => {
-    fetchStats();
-    fetchTweets();
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Top Action Bar with Refresh & Ingest Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card/60 border border-border/80 rounded-xl p-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <Radio className="h-4 w-4" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-white">Live Operations Desk</h2>
-            <p className="text-xs text-muted-foreground">
-              {stats?.total ? `${stats.total.toLocaleString()} active crisis signals loaded` : "Loading dataset..."}
-            </p>
-          </div>
-        </div>
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="min-w-0 flex-1 space-y-6">
+        {/* Primary focus: at-a-glance numbers, then the live feed */}
+        <KpiRow
+          stats={stats}
+          loading={loadingStats}
+          activeCategory={categoryFilter}
+          onSelectCategory={(category) =>
+            handleFilterChange({ category: categoryFilter === category ? undefined : category, page: 1 })
+          }
+          onReset={handleResetFilters}
+        />
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              fetchStats();
-              fetchTweets();
-            }}
-            disabled={loadingStats || loadingTweets}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary/80 px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
-          >
-            <RefreshCw
-              className={`h-3.5 w-3.5 ${loadingStats || loadingTweets ? "animate-spin" : ""}`}
-            />
-            <span>Refresh</span>
-          </button>
-
-          <IngestTrigger onIngestComplete={handleIngestComplete} />
-        </div>
+        <LiveFeed
+          tweets={tweets}
+          pagination={pagination}
+          loading={loadingTweets}
+          filters={{
+            category: categoryFilter,
+            urgency: urgencyFilter,
+            location: locationFilter,
+            q: searchQuery,
+          }}
+          onFilterChange={handleFilterChange}
+          onResetFilters={handleResetFilters}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
       </div>
 
-      {/* 1. Responsive KPI Row */}
-      <KpiRow
-        stats={stats}
-        loading={loadingStats}
-        onSelectFilter={({ category, urgency }) => {
-          setCategoryFilter(category);
-          setUrgencyFilter(urgency);
-          setCurrentPage(1);
-        }}
-        activeCategory={categoryFilter}
-        activeUrgency={urgencyFilter}
-      />
-
-      {/* 2. Visual Category Triage Meter */}
-      <CategoryBars
-        categories={categories}
-        total={stats?.total ?? 0}
-        loading={loadingStats}
-        selectedCategory={categoryFilter}
-        onSelectCategory={(cat) => {
-          setCategoryFilter(cat);
-          setCurrentPage(1);
-        }}
-      />
-
-      {/* 3. Top Impacted Calgary Flood Zones */}
-      <ImpactedZones
-        locations={locations}
-        loading={loadingStats}
-        selectedLocation={locationFilter}
-        onSelectLocation={(loc) => {
-          setLocationFilter(loc);
-          setCurrentPage(1);
-        }}
-      />
-
-      {/* 4. Live Operational Signal Feed */}
-      <LiveFeed
-        tweets={tweets}
-        pagination={pagination}
-        loading={loadingTweets}
-        categoryFilter={categoryFilter}
-        urgencyFilter={urgencyFilter}
-        locationFilter={locationFilter}
-        searchQuery={searchQuery}
-        onFilterChange={handleFilterChange}
-        onResetFilters={handleResetFilters}
-      />
+      {/* Right column: filters + most impacted zones, sticky */}
+      <aside className="w-full shrink-0 space-y-4 lg:sticky lg:top-6 lg:w-72">
+        <FilterSheet
+          filters={{
+            category: categoryFilter,
+            urgency: urgencyFilter,
+            location: locationFilter,
+            q: searchQuery,
+          }}
+          locations={locations}
+          onFilterChange={handleFilterChange}
+          onResetFilters={handleResetFilters}
+        />
+        <ImpactedZones
+          locations={locations}
+          loading={loadingStats}
+          activeLocation={locationFilter}
+          onSelectLocation={(name) =>
+            handleFilterChange({ location: locationFilter === name ? undefined : name, page: 1 })
+          }
+        />
+        <CategoryDonut categories={categories} total={stats?.total ?? 0} loading={loadingStats} />
+      </aside>
     </div>
   );
 }

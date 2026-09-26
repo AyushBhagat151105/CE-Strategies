@@ -2,22 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import {
-  MapPin,
-  ShieldAlert,
-  Flame,
-  Users,
-  Compass,
-  Radio,
-  ExternalLink,
-  ChevronRight,
-  Sparkles,
-  RefreshCw,
-  X,
-  AlertTriangle,
-  Clock,
-  Layers,
-} from "lucide-react";
+import { MapPin, ExternalLink, ChevronRight, X } from "@/components/icons";
 import { CalgaryMap, type ZoneData } from "@/components/dashboard/calgary-map";
 import { CALGARY_FLOOD_ZONES } from "@/lib/calgary-gazetteer";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +17,7 @@ interface CrisisTweetItem {
   locationName: string | null;
   latitude: number | null;
   longitude: number | null;
+  isVerified: boolean;
   createdAt: string;
 }
 
@@ -122,153 +108,84 @@ export default function FloodMapPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-border/80 bg-gradient-to-r from-emerald-950/40 via-card to-card p-6 shadow-sm">
-        <div className="max-w-2xl space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1 text-xs text-emerald-300">
-            <Compass className="h-3.5 w-3.5" />
-            Calgary Flood Basin Intelligence
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            Interactive Geospatial Crisis Map
-          </h1>
-          <p className="text-xs text-muted-foreground sm:text-sm leading-relaxed">
-            Real-time geospatial triage across Bow & Elbow river flood basins. Click on any community node
-            to inspect localized distress calls, infrastructure failures, and volunteer operations.
-          </p>
-        </div>
+      {/* Section 0: Zone Header & Impact Metrics — always on top */}
+      {selectedZone && (
+        <div className="rounded-xl border border-transparent bg-card p-5 transition-colors hover:border-border/80 space-y-4">
+          {/* Zone Header */}
+          <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-md bg-emerald-950/80 border border-emerald-800 text-emerald-300 px-2 py-0.5 text-xs font-bold font-mono uppercase">
+                  {activeZoneDef?.zoneType ?? "NEIGHBOURHOOD"}
+                </span>
+                <span className="rounded-md bg-red-950/80 border border-red-800 text-red-300 px-2 py-0.5 text-xs font-bold font-mono uppercase">
+                  {activeZoneDef?.riskLevel ?? "HIGH"} RISK
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-foreground mt-1.5 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-emerald-400" />
+                {selectedZone}
+              </h2>
+              {activeZoneDef && (
+                <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                  Coordinates: {activeZoneDef.coordinates.latitude.toFixed(4)}° N,{" "}
+                  {Math.abs(activeZoneDef.coordinates.longitude).toFixed(4)}° W
+                </p>
+              )}
+            </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary/80 px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors"
-          >
-            <Radio className="h-4 w-4 text-blue-400" />
-            Command Center
-          </Link>
-          <Link
-            href="/triage"
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-red-500 transition-colors shadow-sm"
-          >
-            <ShieldAlert className="h-4 w-4" />
-            Open Triage Queue
-          </Link>
+            <button
+              type="button"
+              onClick={() => setSelectedZone(null)}
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              title="Close Inspector"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Zone Impact Metrics */}
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="rounded-lg border border-transparent bg-red-950/20 p-2.5 text-center transition-colors hover:border-red-900/60">
+              <div className="text-[10px] uppercase font-semibold text-red-400">Critical</div>
+              <div className="text-lg font-bold text-red-300 mt-0.5">
+                {activeZoneData?.critical ?? 0}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-transparent bg-amber-950/20 p-2.5 text-center transition-colors hover:border-amber-900/60">
+              <div className="text-[10px] uppercase font-semibold text-amber-400">High / Infra</div>
+              <div className="text-lg font-bold text-amber-300 mt-0.5">
+                {activeZoneData?.high ?? 0}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-transparent bg-emerald-950/20 p-2.5 text-center transition-colors hover:border-emerald-900/60">
+              <div className="text-[10px] uppercase font-semibold text-emerald-400">Total Signals</div>
+              <div className="text-lg font-bold text-emerald-300 mt-0.5">
+                {totalZoneTweets || activeZoneData?.total || 0}
+              </div>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Section 1: Calgary Flood Map */}
+      <div>
+        <CalgaryMap
+          zoneStats={zoneStats}
+          selectedZone={selectedZone}
+          onSelectZone={setSelectedZone}
+        />
       </div>
 
-      {/* Main Split-Screen Map & Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left: Calgary Vector Flood Map (7 cols on lg, full on mobile) */}
-        <div className="lg:col-span-7 space-y-4">
-          <CalgaryMap
-            zoneStats={zoneStats}
-            selectedZone={selectedZone}
-            onSelectZone={setSelectedZone}
-          />
-
-          {/* Quick Jump Buttons for Calgary Communities */}
-          <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
-            <div className="flex items-center justify-between text-xs text-muted-foreground pb-2.5 border-b border-border/60">
-              <span className="font-semibold text-foreground flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-primary" />
-                Select High-Density Zone:
-              </span>
-              <span>{CALGARY_FLOOD_ZONES.length} recognized basins</span>
-            </div>
-
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              {CALGARY_FLOOD_ZONES.map((zone) => {
-                const isSelected = selectedZone === zone.name;
-                const stats = zoneStats[zone.name];
-                return (
-                  <button
-                    key={zone.name}
-                    type="button"
-                    onClick={() => setSelectedZone(isSelected ? null : zone.name)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
-                      isSelected
-                        ? "border-emerald-500 bg-emerald-950/70 text-emerald-300 ring-1 ring-emerald-500"
-                        : "border-border/60 bg-secondary/30 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    }`}
-                  >
-                    <MapPin className={`h-3 w-3 ${isSelected ? "text-emerald-400" : "text-slate-500"}`} />
-                    <span>{zone.name}</span>
-                    {stats?.total ? (
-                      <span className="rounded bg-black/40 px-1 text-[10px] font-mono text-emerald-400">
-                        {stats.total}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Zone Inspector & Filtered Distress Feed (5 cols on lg) */}
-        <div className="lg:col-span-5 space-y-4">
+      {/* Section 2: Filtered Distress Feed */}
+      <div className="space-y-4">
           {selectedZone ? (
-            <div className="rounded-xl border border-border/80 bg-card p-5 shadow-sm space-y-4">
-              {/* Zone Header */}
-              <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-md bg-emerald-950/80 border border-emerald-800 text-emerald-300 px-2 py-0.5 text-xs font-bold font-mono uppercase">
-                      {activeZoneDef?.zoneType ?? "NEIGHBOURHOOD"}
-                    </span>
-                    <span className="rounded-md bg-red-950/80 border border-red-800 text-red-300 px-2 py-0.5 text-xs font-bold font-mono uppercase">
-                      {activeZoneDef?.riskLevel ?? "HIGH"} RISK
-                    </span>
-                  </div>
-                  <h2 className="text-xl font-bold text-white mt-1.5 flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-emerald-400" />
-                    {selectedZone}
-                  </h2>
-                  {activeZoneDef && (
-                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
-                      Coordinates: {activeZoneDef.coordinates.latitude.toFixed(4)}° N,{" "}
-                      {Math.abs(activeZoneDef.coordinates.longitude).toFixed(4)}° W
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedZone(null)}
-                  className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                  title="Close Inspector"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Zone Impact Metrics */}
-              <div className="grid grid-cols-3 gap-2.5">
-                <div className="rounded-lg border border-red-900/40 bg-red-950/20 p-2.5 text-center">
-                  <div className="text-[10px] uppercase font-semibold text-red-400">Critical</div>
-                  <div className="text-lg font-bold text-red-300 mt-0.5">
-                    {activeZoneData?.critical ?? 0}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-amber-900/40 bg-amber-950/20 p-2.5 text-center">
-                  <div className="text-[10px] uppercase font-semibold text-amber-400">High / Infra</div>
-                  <div className="text-lg font-bold text-amber-300 mt-0.5">
-                    {activeZoneData?.high ?? 0}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-emerald-900/40 bg-emerald-950/20 p-2.5 text-center">
-                  <div className="text-[10px] uppercase font-semibold text-emerald-400">Total Signals</div>
-                  <div className="text-lg font-bold text-emerald-300 mt-0.5">
-                    {totalZoneTweets || activeZoneData?.total || 0}
-                  </div>
-                </div>
-              </div>
-
+            <div className="rounded-xl border border-transparent bg-card p-5 transition-colors hover:border-border/80 space-y-4">
               {/* Actions row */}
               <div className="flex items-center justify-between gap-2 pt-1">
-                <span className="text-xs font-semibold text-white">
+                <span className="text-xs font-semibold text-foreground">
                   Distress Signals in {selectedZone}
                 </span>
 
@@ -282,7 +199,7 @@ export default function FloodMapPage() {
               </div>
 
               {/* Filtered Tweet Cards Stream */}
-              <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 scrollbar-thin">
+              <div className="space-y-2.5">
                 {loadingTweets ? (
                   Array.from({ length: 4 }).map((_, i) => (
                     <div
@@ -301,54 +218,76 @@ export default function FloodMapPage() {
                 ) : (
                   zoneTweets.map((t) => {
                     const isCritical = t.urgency === "CRITICAL";
+                    const isHigh = t.urgency === "HIGH";
+
                     return (
                       <div
                         key={t.id}
-                        className={`rounded-lg border p-3 text-xs space-y-1.5 transition-colors ${
+                        className={`rounded-xl border p-4 transition-colors ${
                           isCritical
-                            ? "border-red-800/80 bg-red-950/30"
-                            : "border-border/60 bg-secondary/20 hover:bg-secondary/40"
+                            ? "border-red-800/50 bg-red-950/10"
+                            : isHigh
+                            ? "border-amber-800/60 bg-amber-950/10"
+                            : "border-transparent bg-card hover:border-border/60"
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5">
+                        {/* Meta Badges Row */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <Badge
                               variant={
-                                isCritical
+                                t.urgency === "CRITICAL"
                                   ? "critical"
                                   : t.urgency === "HIGH"
                                   ? "high"
                                   : t.urgency === "MEDIUM"
                                   ? "medium"
-                                  : "low"
+                                  : t.urgency === "LOW"
+                                  ? "low"
+                                  : "outline"
                               }
                             >
                               {t.urgency}
                             </Badge>
-                            <span className="font-semibold text-slate-300">{t.category}</span>
+
+                            <span className="rounded-full bg-secondary/80 border border-border px-2.5 py-0.5 text-[11px] font-semibold text-foreground">
+                              {t.category}
+                            </span>
+
+                            {t.sentiment && t.sentiment !== "NEUTRAL" && (
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-mono uppercase font-bold border ${
+                                  t.sentiment === "PANIC"
+                                    ? "border-red-600 bg-red-950/80 text-red-300 animate-pulse"
+                                    : t.sentiment === "HOPEFUL"
+                                    ? "border-emerald-600 bg-emerald-950/80 text-emerald-300"
+                                    : "border-amber-600 bg-amber-950/80 text-amber-300"
+                                }`}
+                              >
+                                {t.sentiment}
+                              </span>
+                            )}
+
+                            {t.isVerified && (
+                              <span className="rounded-full bg-cream/10 border border-cream/40 px-2 py-0.5 text-[10px] text-cream font-semibold">
+                                Verified
+                              </span>
+                            )}
                           </div>
-                          <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-                            <Clock className="h-2.5 w-2.5" />
-                            {new Date(t.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
 
-                        <p className="text-foreground/90 leading-relaxed">
-                          {t.cleanText || t.rawText}
-                        </p>
-
-                        <div className="flex items-center justify-end pt-1">
                           <Link
                             href={`/triage?id=${t.id}`}
-                            className="text-[10px] text-primary hover:underline flex items-center gap-1"
+                            title="Triage in Queue"
+                            className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-primary transition-colors"
                           >
-                            <span>Triage Signal</span>
-                            <ExternalLink className="h-2.5 w-2.5" />
+                            <ExternalLink className="h-4 w-4" />
                           </Link>
                         </div>
+
+                        {/* Tweet Text Content */}
+                        <p className="text-sm text-foreground/95 leading-relaxed font-normal mt-1">
+                          {t.cleanText || t.rawText}
+                        </p>
                       </div>
                     );
                   })
@@ -359,7 +298,7 @@ export default function FloodMapPage() {
             /* Empty State: Prompt to select a zone */
             <div className="rounded-xl border border-dashed border-border bg-card/60 p-8 text-center space-y-3">
               <MapPin className="h-10 w-10 text-emerald-400 mx-auto opacity-70 animate-bounce" />
-              <h3 className="text-base font-semibold text-white">Select a Flood Basin</h3>
+              <h3 className="text-base font-semibold text-foreground">Select a Flood Basin</h3>
               <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
                 Click on any community pin on the map or use the quick-jump list above to inspect localized
                 distress calls and dispatch crews.
@@ -376,7 +315,6 @@ export default function FloodMapPage() {
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

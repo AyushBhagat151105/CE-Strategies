@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertCircle, Loader2, RotateCcw, ShieldCheck } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { AlertCircle, Loader2, RotateCcw, ShieldCheck } from "@/components/icons";
 import { ActionDialog } from "@/components/triage/action-dialog";
 import { QueueRow } from "@/components/triage/queue-row";
 import type { CrisisTweetRecord, UrgencyLevel } from "@/lib/types";
@@ -155,10 +156,7 @@ export default function TriagePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Emergency Dispatcher Queue</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {tweets.length} unreviewed signal{tweets.length === 1 ? "" : "s"} — use the keyboard to triage without touching the mouse.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Emergency Dispatcher Queue</h1>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -182,7 +180,7 @@ export default function TriagePage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border/60 bg-card/60 p-3 text-xs text-muted-foreground">
+      <div className="rounded-lg border border-transparent bg-card/60 p-3 text-xs text-muted-foreground transition-colors hover:border-border/60">
         <span className="font-medium text-foreground">Keyboard shortcuts:</span>{" "}
         <kbd className="rounded border border-border bg-secondary px-1">↑</kbd>/<kbd className="rounded border border-border bg-secondary px-1">↓</kbd> move focus ·{" "}
         <kbd className="rounded border border-border bg-secondary px-1">V</kbd> verify ·{" "}
@@ -200,7 +198,7 @@ export default function TriagePage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-card/40 p-12 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 rounded-lg border border-transparent bg-card/40 p-12 text-sm text-muted-foreground transition-colors hover:border-border/60">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading queue…
         </div>
@@ -211,40 +209,53 @@ export default function TriagePage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {tweets.map((tweet, index) => (
-            <div key={tweet.id} ref={(el) => { rowRefs.current[tweet.id] = el; }}>
-              <QueueRow
-                tweet={tweet}
-                focused={index === focusedIndex}
-                pending={pendingId === tweet.id}
-                onOpenDetail={() => {
-                  setFocusedIndex(index);
-                  setDetailTweetId(tweet.id);
-                }}
-                onVerify={() => applyAction(tweet.id, { status: "TRIAGED", isVerified: true })}
-                onEscalate={() => applyAction(tweet.id, { urgency: NEXT_URGENCY[tweet.urgency] })}
-                onDispatch={() => applyAction(tweet.id, { status: "DISPATCHED" })}
-                onDismiss={() =>
-                  applyAction(tweet.id, { status: "DISMISSED", category: "NOISE", urgency: "NONE" })
-                }
-              />
-            </div>
-          ))}
+          <AnimatePresence initial={false}>
+            {tweets.map((tweet, index) => (
+              <motion.div
+                key={tweet.id}
+                ref={(el) => { rowRefs.current[tweet.id] = el; }}
+                layout
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 40 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+              >
+                <QueueRow
+                  tweet={tweet}
+                  focused={index === focusedIndex}
+                  pending={pendingId === tweet.id}
+                  onOpenDetail={() => {
+                    setFocusedIndex(index);
+                    setDetailTweetId(tweet.id);
+                  }}
+                  onVerify={() => applyAction(tweet.id, { status: "TRIAGED", isVerified: true })}
+                  onEscalate={() => applyAction(tweet.id, { urgency: NEXT_URGENCY[tweet.urgency] })}
+                  onDispatch={() => applyAction(tweet.id, { status: "DISPATCHED" })}
+                  onDismiss={() =>
+                    applyAction(tweet.id, { status: "DISMISSED", category: "NOISE", urgency: "NONE" })
+                  }
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
-      {(() => {
-        const detailTweet = tweets.find((t) => t.id === detailTweetId);
-        if (!detailTweet) return null;
-        return (
-          <ActionDialog
-            tweet={detailTweet}
-            pending={pendingId === detailTweet.id}
-            onClose={() => setDetailTweetId(null)}
-            onAction={(body) => applyAction(detailTweet.id, body)}
-          />
-        );
-      })()}
+      <AnimatePresence>
+        {(() => {
+          const detailTweet = tweets.find((t) => t.id === detailTweetId);
+          if (!detailTweet) return null;
+          return (
+            <ActionDialog
+              key={detailTweet.id}
+              tweet={detailTweet}
+              pending={pendingId === detailTweet.id}
+              onClose={() => setDetailTweetId(null)}
+              onAction={(body) => applyAction(detailTweet.id, body)}
+            />
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }

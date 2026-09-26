@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ArrowUpCircle, Send, XCircle, X } from "lucide-react";
+import { motion } from "motion/react";
+import { CheckCircle2, ArrowUpCircle, Send, XCircle, X } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { classifyCrisisTweet } from "@/lib/nlp-classifier";
@@ -68,13 +69,21 @@ export function ActionDialog({ tweet, pending, onClose, onAction }: ActionDialog
   }
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
     >
-      <div
+      <motion.div
         className="w-full max-w-2xl rounded-xl border border-border bg-card shadow-xl"
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
       >
         <div className="flex items-start justify-between gap-4 border-b border-border/60 p-5">
           <div className="space-y-1.5">
@@ -190,7 +199,7 @@ export function ActionDialog({ tweet, pending, onClose, onAction }: ActionDialog
               disabled={pending}
               onClick={() => dispatchAction({ status: "DISPATCHED" }, true)}
             >
-              <Send className="mr-1.5 h-3.5 w-3.5 text-blue-400" />
+              <Send className="mr-1.5 h-3.5 w-3.5 text-cream" />
               Dispatch
             </Button>
             <Button
@@ -204,7 +213,7 @@ export function ActionDialog({ tweet, pending, onClose, onAction }: ActionDialog
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
