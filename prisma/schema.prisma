@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CrisisTweet {
+  id              String      @id @default(cuid())
+  rawText         String
+  cleanText       String?
+  category        String      @default("UNCLASSIFIED")
+  urgency         String      @default("LOW")
+  sentiment       String?
+  locationName    String?
+  latitude        Float?
+  longitude       Float?
+  author          String?
+  isVerified      Boolean     @default(false)
+  status          String      @default("UNREVIEWED")
+  sourceRowIndex  Int?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  triageLogs      TriageLog[]
+
+  @@index([category])
+  @@index([urgency])
+  @@index([status])
+  @@index([locationName])
+}
+
+model TriageLog {
+  id            String       @id @default(cuid())
+  tweetId       String
+  tweet         CrisisTweet  @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  action        String
+  previousValue String?
+  newValue      String?
+  operatorNotes String?
+  operatorName  String?
+  createdAt     DateTime     @default(now())
+
+  @@index([tweetId])
+  @@index([action])
+}
+
+model LocationGazetteer {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  normalizedName String
+  latitude       Float
+  longitude      Float
+  zoneType       String
+  floodRiskLevel String   @default("HIGH")
+  createdAt      DateTime @default(now())
+}
+
+model AidRequest {
+  id           String   @id @default(cuid())
+  type         String
+  category     String
+  description  String
+  contactInfo  String?
+  locationName String?
+  status       String   @default("OPEN")
+  tweetId      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([type])
+  @@index([category])
+  @@index([status])
+}
