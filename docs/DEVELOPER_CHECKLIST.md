@@ -94,7 +94,7 @@ Run these steps together before splitting into separate workstreams:
 
 ### Checklist
 
-- [ ] **Task B1: Calibrate NLP Disaster Classifier**
+- [x] **Task B1: Calibrate NLP Disaster Classifier**
   - **Files**: `lib/nlp-classifier.ts`
   - **Action**:
     - Refine keywords and regex rules across all 7 categories:
