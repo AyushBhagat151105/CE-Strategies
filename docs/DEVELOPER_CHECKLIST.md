@@ -115,7 +115,7 @@ Run these steps together before splitting into separate workstreams:
     - Add sort orders: prioritize `urgency: "asc"` (`CRITICAL` first) then `createdAt: "desc"`.
   - **Done Criteria**: `GET /api/tweets?urgency=CRITICAL&location=Mission` returns only matching records.
 
-- [ ] **Task B3: Build Real-Time Analytics API**
+- [x] **Task B3: Build Real-Time Analytics API**
   - **Files**: `app/api/stats/route.ts`
   - **Action**:
     - Run fast SQL aggregations with `prisma.crisisTweet.count()` and `prisma.crisisTweet.groupBy()`.
