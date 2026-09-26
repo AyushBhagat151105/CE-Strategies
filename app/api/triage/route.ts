@@ -18,6 +18,24 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Tweet not found" }, { status: 404 });
     }
 
+    const changes: Array<{ field: string; previous: string; next: string }> = [];
+    if (status && status !== currentTweet.status) {
+      changes.push({ field: "status", previous: currentTweet.status, next: status });
+    }
+    if (urgency && urgency !== currentTweet.urgency) {
+      changes.push({ field: "urgency", previous: currentTweet.urgency, next: urgency });
+    }
+    if (category && category !== currentTweet.category) {
+      changes.push({ field: "category", previous: currentTweet.category, next: category });
+    }
+    if (typeof isVerified === "boolean" && isVerified !== currentTweet.isVerified) {
+      changes.push({
+        field: "isVerified",
+        previous: String(currentTweet.isVerified),
+        next: String(isVerified),
+      });
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
       const tweet = await tx.crisisTweet.update({
         where: { id: tweetId },
@@ -32,9 +50,12 @@ export async function PATCH(request: NextRequest) {
       await tx.triageLog.create({
         data: {
           tweetId,
-          action: status ? `STATUS_CHANGED_TO_${status}` : "UPDATED",
-          previousValue: currentTweet.status,
-          newValue: status ?? currentTweet.status,
+          action:
+            changes.length > 0
+              ? changes.map((c) => `${c.field.toUpperCase()}_CHANGED`).join("+")
+              : "NOTE_ADDED",
+          previousValue: changes.map((c) => `${c.field}=${c.previous}`).join(", ") || null,
+          newValue: changes.map((c) => `${c.field}=${c.next}`).join(", ") || null,
           operatorNotes: notes ?? null,
           operatorName: operatorName ?? "Anonymous Operator",
         },

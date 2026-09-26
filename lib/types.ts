@@ -43,6 +43,24 @@ export interface ClassificationResult {
   sentiment?: "PANIC" | "CONCERN" | "NEUTRAL" | "HOPEFUL";
 }
 
+export interface CrisisTweetRecord {
+  id: string;
+  rawText: string;
+  cleanText: string | null;
+  category: CrisisCategory;
+  urgency: UrgencyLevel;
+  sentiment: "PANIC" | "CONCERN" | "NEUTRAL" | "HOPEFUL" | null;
+  locationName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  author: string | null;
+  isVerified: boolean;
+  status: TriageStatus;
+  sourceRowIndex: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CrisisStats {
   totalProcessed: number;
   criticalCount: number;

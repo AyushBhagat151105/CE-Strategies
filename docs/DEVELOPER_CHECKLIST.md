@@ -8,27 +8,29 @@ This document serves as the master execution checklist for Developer 1 (Engineer
 
 Run these steps together before splitting into separate workstreams:
 
-- [ ] **Step 1: Install Dependencies**
+- [x] **Step 1: Install Dependencies**
   ```bash
   bun install
   ```
-- [ ] **Step 2: Start PostgreSQL Database Container**
+- [x] **Step 2: Start PostgreSQL Database Container**
   ```bash
   bun run docker:up
   ```
-- [ ] **Step 3: Verify PostgreSQL Container Health**
+  *Note: host port 5432 was already taken by another local project's container, so this project's DB is mapped to host port 5434 instead (see `docker-compose.yml` and `.env`).*
+- [x] **Step 3: Verify PostgreSQL Container Health**
   ```bash
   docker compose ps
   ```
-- [ ] **Step 4: Push Prisma Schema to PostgreSQL**
+- [x] **Step 4: Push Prisma Schema to PostgreSQL**
   ```bash
   bun run db:push
   ```
-- [ ] **Step 5: Verify Next.js Dev Server**
+- [x] **Step 5: Verify Next.js Dev Server**
   ```bash
   bun dev
   ```
   *Open http://localhost:3000 to verify the Command Center loads cleanly.*
+  *Note: port 3000 was also taken locally, so dev server ran on port 3001 during verification.*
 
 ---
 
@@ -39,12 +41,12 @@ Run these steps together before splitting into separate workstreams:
 
 ### Checklist
 
-- [ ] **Task A1: Verify Database Schema & GUI**
+- [x] **Task A1: Verify Database Schema & GUI**
   - **Files**: `prisma/schema.prisma`
   - **Action**: Run `bun run db:push` followed by `bun run db:studio` (open http://localhost:5555).
   - **Done Criteria**: Tables `CrisisTweet`, `TriageLog`, `LocationGazetteer`, and `AidRequest` are visible with proper column types and indexes.
 
-- [ ] **Task A2: Streaming CSV Ingestion Pipeline**
+- [x] **Task A2: Streaming CSV Ingestion Pipeline**
   - **Files**: `lib/csv-parser.ts` & `app/api/ingest/route.ts`
   - **Action**:
     - Stream `main_contestant.csv` line-by-line via `readline` to keep memory footprint under 50MB.
@@ -52,21 +54,21 @@ Run these steps together before splitting into separate workstreams:
     - Handle multi-line quotes and clean escaped CSV quotes (`""` $\to$ `"`).
   - **Done Criteria**: `curl -X POST http://localhost:3000/api/ingest` loads all 8,026 rows into PostgreSQL in < 5 seconds.
 
-- [ ] **Task A3: Calgary Geospatial Gazetteer**
+- [x] **Task A3: Calgary Geospatial Gazetteer**
   - **Files**: `lib/calgary-gazetteer.ts`
   - **Action**:
     - Expand neighbourhood aliases to cover colloquial mentions (`"mission"`, `"4th street"`, `"cliff bungalow"`, `"beltline"`, `"17th ave"`, `"bowness"`, `"sunnyside"`, `"kensington"`, `"saddledome"`, `"stampede"`, `"high river"`).
     - Implement word-boundary regex (`/\bmission\b/i`) to prevent false positives (e.g., "commission" or "transmission").
   - **Done Criteria**: `extractCalgaryLocation(text)` accurately returns community name and `{ latitude, longitude }`.
 
-- [ ] **Task A4: Triage & Audit Route Handler**
+- [x] **Task A4: Triage & Audit Route Handler**
   - **Files**: `app/api/triage/route.ts`
   - **Action**:
     - Handle `PATCH` requests accepting `{ tweetId, status, urgency, category, isVerified, notes, operatorName }`.
     - Run an atomic Prisma transaction (`prisma.$transaction`) that updates the `CrisisTweet` and logs an entry in `TriageLog`.
   - **Done Criteria**: Updating a tweet records the previous and new values in `TriageLog`.
 
-- [ ] **Task A5: Emergency Dispatcher Triage Queue Page**
+- [x] **Task A5: Emergency Dispatcher Triage Queue Page**
   - **Files**: `app/triage/page.tsx` & `components/triage/*`
   - **Action**:
     - Create a high-density table showing unreviewed crisis signals.
@@ -77,7 +79,7 @@ Run these steps together before splitting into separate workstreams:
       - `X` = Dismiss / flag as noise
   - **Done Criteria**: Dispatchers can triage alerts entirely using the keyboard.
 
-- [ ] **Task A6: Dispatcher Action Modal**
+- [x] **Task A6: Dispatcher Action Modal**
   - **Files**: `components/triage/action-dialog.tsx`
   - **Action**:
     - Popup modal when clicking a tweet showing full raw text, matched keywords, category re-assignment dropdown, and operator notes input.
