@@ -107,7 +107,7 @@ Run these steps together before splitting into separate workstreams:
       - `NOISE` (None): Filter synthetic Star Wars excerpts (`"Jedi Master"`, `"blaster pistols"`, `"Yuuzhan Vong"`), Canada Day chatter (`#canadaday`, `#july1st`), and unrelated sports/banter.
   - **Done Criteria**: `classifyCrisisTweet(text)` returns category, urgency, confidence score, and matched keywords.
 
-- [ ] **Task B2: Complete Filterable Tweets API**
+- [x] **Task B2: Complete Filterable Tweets API**
   - **Files**: `app/api/tweets/route.ts`
   - **Action**:
     - Implement query filters: `?category=`, `?urgency=`, `?location=`, `?status=`, `?q=` (case-insensitive substring search), `?page=`, `?limit=`.
