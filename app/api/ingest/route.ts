@@ -10,8 +10,10 @@ export async function POST() {
       const result = await prisma.crisisTweet.createMany({
         data: batch.map((item) => ({
           rawText: item.rawText,
+          cleanText: item.cleanText,
           category: item.category,
           urgency: item.urgency,
+          sentiment: item.sentiment,
           locationName: item.locationName,
           latitude: item.latitude,
           longitude: item.longitude,

@@ -94,7 +94,7 @@ Run these steps together before splitting into separate workstreams:
 
 ### Checklist
 
-- [ ] **Task B1: Calibrate NLP Disaster Classifier**
+- [x] **Task B1: Calibrate NLP Disaster Classifier**
   - **Files**: `lib/nlp-classifier.ts`
   - **Action**:
     - Refine keywords and regex rules across all 7 categories:
@@ -107,7 +107,7 @@ Run these steps together before splitting into separate workstreams:
       - `NOISE` (None): Filter synthetic Star Wars excerpts (`"Jedi Master"`, `"blaster pistols"`, `"Yuuzhan Vong"`), Canada Day chatter (`#canadaday`, `#july1st`), and unrelated sports/banter.
   - **Done Criteria**: `classifyCrisisTweet(text)` returns category, urgency, confidence score, and matched keywords.
 
-- [ ] **Task B2: Complete Filterable Tweets API**
+- [x] **Task B2: Complete Filterable Tweets API**
   - **Files**: `app/api/tweets/route.ts`
   - **Action**:
     - Implement query filters: `?category=`, `?urgency=`, `?location=`, `?status=`, `?q=` (case-insensitive substring search), `?page=`, `?limit=`.
@@ -115,7 +115,7 @@ Run these steps together before splitting into separate workstreams:
     - Add sort orders: prioritize `urgency: "asc"` (`CRITICAL` first) then `createdAt: "desc"`.
   - **Done Criteria**: `GET /api/tweets?urgency=CRITICAL&location=Mission` returns only matching records.
 
-- [ ] **Task B3: Build Real-Time Analytics API**
+- [x] **Task B3: Build Real-Time Analytics API**
   - **Files**: `app/api/stats/route.ts`
   - **Action**:
     - Run fast SQL aggregations with `prisma.crisisTweet.count()` and `prisma.crisisTweet.groupBy()`.
@@ -125,7 +125,7 @@ Run these steps together before splitting into separate workstreams:
     - Return triage completion percentage (reviewed vs. unreviewed).
   - **Done Criteria**: `GET /api/stats` responds in < 50ms with complete KPI aggregations.
 
-- [ ] **Task B4: Build Executive Command Center Dashboard**
+- [x] **Task B4: Build Executive Command Center Dashboard**
   - **Files**: `app/page.tsx` & `components/dashboard/*`
   - **Action**:
     - **KPI Row**: 4 cards showing Critical Rescues, Infrastructure Alerts, Volunteer Offers, and Total Dataset.
@@ -134,7 +134,7 @@ Run these steps together before splitting into separate workstreams:
     - **Data Ingestion Trigger**: A "Load 8,026 Tweets" button calling `/api/ingest` with progress state.
   - **Done Criteria**: Dashboard renders real-time counts from the database and updates upon filter change.
 
-- [ ] **Task B5: Interactive Calgary Geospatial Flood Map**
+- [x] **Task B5: Interactive Calgary Geospatial Flood Map**
   - **Files**: `app/map/page.tsx` & `components/dashboard/calgary-map.tsx`
   - **Action**:
     - Build an interactive map centered on Calgary (51.0447° N, 114.0719° W).

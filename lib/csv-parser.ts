@@ -1,14 +1,16 @@
 import fs from "node:fs";
 import readline from "node:readline";
 import path from "node:path";
-import { classifyCrisisTweet } from "./nlp-classifier";
+import { classifyCrisisTweet, cleanTweetText } from "./nlp-classifier";
 import { extractCalgaryLocation } from "./calgary-gazetteer";
 
 export interface ParsedCrisisRow {
   rowIndex: number;
   rawText: string;
+  cleanText: string;
   category: string;
   urgency: string;
+  sentiment: string | null;
   locationName: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -49,12 +51,15 @@ export async function parseCrisisDataset(
 
     const classification = classifyCrisisTweet(tweetText);
     const location = extractCalgaryLocation(tweetText);
+    const cleanText = cleanTweetText(tweetText);
 
     batch.push({
       rowIndex,
       rawText: tweetText,
+      cleanText,
       category: classification.category,
       urgency: classification.urgency,
+      sentiment: classification.sentiment ?? null,
       locationName: location?.name ?? null,
       latitude: location?.coordinates.latitude ?? null,
       longitude: location?.coordinates.longitude ?? null,
