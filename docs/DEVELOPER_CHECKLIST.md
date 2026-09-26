@@ -125,7 +125,7 @@ Run these steps together before splitting into separate workstreams:
     - Return triage completion percentage (reviewed vs. unreviewed).
   - **Done Criteria**: `GET /api/stats` responds in < 50ms with complete KPI aggregations.
 
-- [ ] **Task B4: Build Executive Command Center Dashboard**
+- [x] **Task B4: Build Executive Command Center Dashboard**
   - **Files**: `app/page.tsx` & `components/dashboard/*`
   - **Action**:
     - **KPI Row**: 4 cards showing Critical Rescues, Infrastructure Alerts, Volunteer Offers, and Total Dataset.
