@@ -1,8 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { WorldFloodMap, type WorldCountryStat } from "@/components/dashboard/world-flood-map";
+import dynamic from "next/dynamic";
+import type { WorldCountryStat } from "@/components/dashboard/world-flood-map";
 import { MapPin, X, Clock, Loader2 } from "@/components/icons";
+
+// Leaflet touches `window` at import time, which breaks Next.js's server-side
+// prerendering — this component must only ever load in the browser.
+const WorldFloodMap = dynamic(() => import("@/components/dashboard/world-flood-map").then((m) => m.WorldFloodMap), {
+  ssr: false,
+  loading: () => <div className="h-[540px] w-full animate-pulse rounded-xl bg-card" />,
+});
 
 interface FloodSignalItem {
   id: string;

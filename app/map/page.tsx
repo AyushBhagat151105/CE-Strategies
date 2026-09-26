@@ -2,10 +2,18 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { MapPin, ExternalLink, ChevronRight, X } from "@/components/icons";
-import { CalgaryMap, type ZoneData } from "@/components/dashboard/calgary-map";
+import type { ZoneData } from "@/components/dashboard/calgary-map";
 import { CALGARY_FLOOD_ZONES } from "@/lib/calgary-gazetteer";
 import { Badge } from "@/components/ui/badge";
+
+// Leaflet touches `window` at import time, which breaks Next.js's server-side
+// prerendering — this component must only ever load in the browser.
+const CalgaryMap = dynamic(() => import("@/components/dashboard/calgary-map").then((m) => m.CalgaryMap), {
+  ssr: false,
+  loading: () => <div className="h-[540px] w-full animate-pulse rounded-xl bg-card" />,
+});
 
 interface CrisisTweetItem {
   id: string;
