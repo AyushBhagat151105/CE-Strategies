@@ -7,7 +7,7 @@ export async function POST() {
     let insertedCount = 0;
 
     const total = await parseCrisisDataset(undefined, async (batch) => {
-      await prisma.crisisTweet.createMany({
+      const result = await prisma.crisisTweet.createMany({
         data: batch.map((item) => ({
           rawText: item.rawText,
           category: item.category,
@@ -20,7 +20,7 @@ export async function POST() {
         })),
         skipDuplicates: true,
       });
-      insertedCount += batch.length;
+      insertedCount += result.count;
     });
 
     return NextResponse.json({

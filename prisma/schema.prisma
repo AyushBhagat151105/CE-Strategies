@@ -20,7 +20,7 @@ model CrisisTweet {
   author          String?
   isVerified      Boolean     @default(false)
   status          String      @default("UNREVIEWED")
-  sourceRowIndex  Int?
+  sourceRowIndex  Int?        @unique
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
